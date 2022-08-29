@@ -95,12 +95,12 @@ module.exports = (plugin) => {
             } else {
                 ctx.cookies.set("refreshToken", issueRefreshToken({ id: user.id }), {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production" ? true : false,
-                    maxAge: 1000 * 60 * 60 * 24 * 5,
-                    domain: "localhost",
-                    sameSite: "strict"
+                    secure: false,
+                    signed: true,
+                    overwrite: true,
                 });
                 ctx.send({
+                    status: 'Authenticated',
                     jwt: issueJWT({ id: user.id }, { expiresIn: process.env.JWT_SECRET_EXPIRES }),
                     user: await sanitizeUser(user, ctx),
                 });
@@ -140,7 +140,6 @@ module.exports = (plugin) => {
 
         const { refreshToken } = ctx.request.body;
         const refreshCookie = ctx.cookies.get("refreshToken")
-
         if (!refreshCookie && !refreshToken) {
             return ctx.badRequest("No Authorization");
         }
@@ -152,7 +151,6 @@ module.exports = (plugin) => {
                 return ctx.badRequest("No Authorization");
             }
         }
-
         try {
             const obj = await verifyRefreshToken(refreshCookie);
             const user = await strapi.query('plugin::users-permissions.user').findOne({ where: { id: obj.id } });
@@ -173,16 +171,12 @@ module.exports = (plugin) => {
             const refreshToken = issueRefreshToken({ id: user.id })
             ctx.cookies.set("refreshToken", refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production" ? true : false,
-                maxAge: 1000 * 60 * 60 * 24 * 5, // 14 Day Age
-                domain:
-                    process.env.NODE_ENV === "development"
-                        ? "localhost"
-                        : process.env.PRODUCTION_URL,
-                sameSite: "strict"
+                secure: false,
+                signed: true,
+                overwrite: true,
             });
             ctx.send({
-                jwt: issueJWT({ id: obj.id }, { expiresIn: process.env.JWT_SECRET_EXPIRES }),
+                jwt: issueJWT({ id: obj.id }, { expiresIn: '10d' }),
                 refreshToken: refreshToken,
             });
         }
