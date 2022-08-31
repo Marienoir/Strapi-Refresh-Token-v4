@@ -26,12 +26,12 @@ export default {
           "Access-Control-Allow-Credentials": true,
           withCredentials: true,
         };
-        const a = await axios.post(
+        const res = await axios.post(
           "http://localhost:1337/api/token/refresh",
           data,
           options
         );
-        console.log(a.data);
+        localStorage.setItem("token", res.data.jwt);
         this.$emit("close-modal");
       } catch (err) {
         console.log(err);
