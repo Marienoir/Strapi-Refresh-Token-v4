@@ -139,7 +139,7 @@ module.exports = (plugin) => {
         const store = await strapi.store({ type: 'plugin', name: 'users-permissions' });
 
         const { refreshToken } = ctx.request.body;
-        const refreshCookie = ctx.cookies.get("refreshToken")
+        let refreshCookie = ctx.cookies.get("refreshToken")
         if (!refreshCookie && !refreshToken) {
             return ctx.badRequest("No Authorization");
         }
